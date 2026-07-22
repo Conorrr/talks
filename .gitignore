@@ -1,0 +1,11 @@
+node_modules
+
+# Slidev
+dist
+.slidev
+*-export/
+*.pdf
+*.pptx
+
+.DS_Store
+*.local

@@ -1,0 +1,7 @@
+{
+  "name": "shared-addon",
+  "private": true,
+  "slidev": {
+    "addon": true
+  }
+}

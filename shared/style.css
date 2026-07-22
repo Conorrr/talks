@@ -1,0 +1,7 @@
+:root {
+  --shared-brand: #5b4fff;
+}
+
+h1 {
+  color: var(--shared-brand);
+}
