@@ -1,7 +1,180 @@
+/*
+ * RSTL. Design System
+ * Source: https://claude.ai/design/p/666cdb08-ae8e-4c9d-9b0f-6f8c5904d999
+ * Tokens copied verbatim from tokens/colors.css, typography.css, spacing.css, effects.css.
+ * No dark-mode variant exists in the source system, so this palette applies
+ * regardless of the viewer's light/dark preference.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-  --shared-brand: #5b4fff;
+  --ink-900: #1a1a18;
+  --ink-700: #3d3c38;
+  --ink-500: #6b6a64;
+  --ink-300: #a3a19a;
+  --ink-150: #c9c7be;
+  --ink-100: #d8d6cd;
+  --paper-0: #ffffff;
+  --paper-50: #f5f4f0;
+  --paper-100: #ece9e2;
+  --paper-200: #e2ded3;
+  --accent-100: #fbe4d5;
+  --accent-300: #eeae85;
+  --accent-600: #d4632c;
+  --accent-700: #b34f1f;
+  --accent-900: #7a3512;
+  --success-600: #3f7d58;
+  --success-100: #dcece1;
+  --danger-600: #b3402c;
+  --danger-100: #f6ded8;
+  --warning-600: #c98a1f;
+  --warning-100: #f6e8cf;
+
+  --surface-page: var(--paper-50);
+  --surface-card: var(--paper-0);
+  --surface-sunken: var(--paper-100);
+  --surface-inverse: var(--ink-900);
+  --text-primary: var(--ink-900);
+  --text-secondary: var(--ink-700);
+  --text-muted: var(--ink-500);
+  --text-faint: var(--ink-300);
+  --text-on-accent: var(--paper-0);
+  --text-on-inverse: var(--paper-50);
+  --border-default: var(--ink-100);
+  --border-strong: var(--ink-300);
+  --accent: var(--accent-600);
+  --accent-hover: var(--accent-700);
+  --accent-soft: var(--accent-100);
+  --accent-strong: var(--accent-900);
+  --focus-ring: var(--accent-600);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.04em;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(26, 26, 24, 0.06);
+  --shadow-md: 0 4px 12px rgba(26, 26, 24, 0.08);
+  --shadow-lg: 0 12px 32px rgba(26, 26, 24, 0.12);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+
+  /* Map onto Slidev's own chrome variables so the code-block gutter, tab bar
+     etc. read as an extension of the brand rather than a separate skin. */
+  --slidev-code-background: var(--ink-900);
+  --slidev-code-foreground: var(--paper-50);
+  --slidev-theme-primary: var(--accent-600);
 }
 
-h1 {
-  color: var(--shared-brand);
+.slidev-layout {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3,
+.slidev-layout h4,
+.slidev-layout h5 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+
+.slidev-layout h6 {
+  color: var(--text-muted);
+  letter-spacing: var(--tracking-wide);
+}
+
+.slidev-layout p,
+.slidev-layout li {
+  color: var(--text-primary);
+}
+
+/* The default theme dims any paragraph immediately after an h1 to 50%
+   opacity, which crushes contrast against our light paper background.
+   Use an explicit, still-legible secondary color at full opacity instead. */
+.slidev-layout h1 + p {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+.slidev-layout .subline {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.slidev-layout .accent {
+  color: var(--accent);
+}
+
+.slidev-layout a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-soft);
+  transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+.slidev-layout a:hover {
+  color: var(--accent-hover);
+  border-bottom-color: var(--accent-hover);
+}
+
+.slidev-layout strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.slidev-layout li::marker {
+  color: var(--accent);
+}
+
+.slidev-layout blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--space-4);
+  color: var(--text-secondary);
+}
+
+.slidev-layout :not(pre) > code {
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+
+.slidev-layout pre {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* The RSTL system treats monospace as a deliberate "terminal" moment (dark
+   background, light text) rather than a plain code sample — force Shiki's
+   dual-theme dark token colors regardless of the page's own light/dark
+   class, since colorSchema is pinned to light for everything else. */
+.slidev-layout .shiki,
+.slidev-layout .shiki span {
+  color: var(--shiki-dark, inherit) !important;
+}
+
+.slidev-layout table {
+  border-color: var(--border-default);
+}
+.slidev-layout th {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-strong);
+}
+.slidev-layout td {
+  border-bottom: 1px solid var(--border-default);
 }

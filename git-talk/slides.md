@@ -1,5 +1,9 @@
 ---
 theme: default
+addons:
+  - ./shared
+colorSchema: light
+layout: cover
 title: Git Demystified
 info: |
   A presentation looking at how git works.
@@ -7,9 +11,11 @@ info: |
   Conor Restall
 ---
 
-# Git Demystified
+# Git <span class="accent">Demystified</span>
 
 ### Or: how the pieces actually fit together
+
+<Byline />
 
 <!--
 Ask questions as I go. If you're reading these slides afterwards, press `S` to view my speaker notes.
@@ -266,7 +272,7 @@ Now we can see our new directory which is of type tree. For completeness we can 
 
 # Blobs
 
-<div class="opacity-60 italic mb-4">The contents of a file — nothing more</div>
+<div class="subline mb-4">The contents of a file — nothing more</div>
 
 - Represents file **contents** only — not the filename, that lives in the tree
 - Tracking starts once you run `git add`
@@ -361,7 +367,7 @@ Questions?
 
 # The index
 
-<div class="opacity-60 italic mb-4">What "staging" actually is</div>
+<div class="subline mb-4">What "staging" actually is</div>
 
 - A single file: `.git/index`
 - A flat list of entries: path → file mode → blob hash

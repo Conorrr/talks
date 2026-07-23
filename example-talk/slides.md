@@ -2,10 +2,14 @@
 theme: default
 addons:
   - ./shared
+colorSchema: light
+layout: cover
 title: Example Talk
 ---
 
-# Example Talk
+# Example <span class="accent">Talk</span>
+
+<Wordmark size="32px" inverse />
 
 <Byline />
 
