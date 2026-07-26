@@ -18,43 +18,40 @@ info: |
 <Byline />
 
 <!--
-Ask questions as I go. If you're reading these slides afterwards, press `S` to view my speaker notes.
+Ask questions as I go.  If I start going to fast please drop questions in chat, or raise your hand.
 
-Teaching principles - not tools
+I am recording
+
+Teaching principles, not tools
 For demos I will solely use the command line. If that's not what you're used to don't fret it's not important to remember what I am typing, it's important to remember the concepts I'm explaining.
-There will be some parts where you see me poking around with Git internals.
 
-Not a talk about best practices or how you to use git.
+I will be tabbing into a terminal a few times to actually run commands and cat/ls files inside .git. Not because I expect anyone to go poking around in there day to day (you shouldn't need to, and probably never will), but because seeing it for real is far more convincing than a diagram claiming "it's just a file, trust me".
 
-If I get time at I will progress on to breaking down some common and more complex git tasks.
+This isn't a "how to use git" talk, and it isn't a tour of any particular tool's UI (IntelliJ, GitHub Desktop, whatever you use day to day). None of that is the point today. I'm not going to be dictating git commands to memorise or clicking through anyone's git GUI.
 
-If I start going to fast please stop me.
+The point is the model underneath all of those tools. Every button in every git GUI, every command you type, is ultimately just reading or writing the same handful of file types in .git/, once that clicks, the tools stop feeling like separate things to memorise and start feeling like different windows onto the same simple structure.
+
 -->
 
 ---
 
 <img src="https://imgs.xkcd.com/comics/git.png" style="max-height: 60vh; margin: 0 auto;" />
 
-Sound Familiar?
-
 ---
 
 # What I'm going to cover
 
-- What git actually is — and how it's different from other version control tools
+- What git actually is, and how it's different from other version control tools
 - The building blocks: blobs, trees, commits, and the staging area
 - How commits chain together into history (and why your repo doesn't balloon in size)
-- Branches, tags, and refs — just pointers, all the way down
-- Merging vs rebasing — what's actually happening on disk
+- Branches, tags, and refs, just pointers, all the way down
+- Merging, rebasing, and cherry-picking
 - What happens when you push, pull, and force-push
 - Why none of this is actually as scary or as permanent as it looks
 
 <!--
-This isn't a "how to use git" talk, and it isn't a tour of any particular tool's UI (IntelliJ, GitHub Desktop, whatever you use day to day) - none of that is the point today. I'm not going to be dictating git commands to memorise or clicking through anyone's git GUI.
 
-The point is the model underneath all of those tools. Every button in every git GUI, every command you type, is ultimately just reading or writing the same handful of file types in .git/ - once that clicks, the tools stop feeling like separate things to memorise and start feeling like different windows onto the same simple structure.
 
-I will be tabbing into a terminal a few times to actually run commands and cat/ls files inside .git - not because I expect anyone to go poking around in there day to day (you shouldn't need to, and probably never will), but because seeing it for real is far more convincing than a diagram claiming "it's just a file, trust me".
 -->
 
 ---
@@ -67,29 +64,30 @@ I will be tabbing into a terminal a few times to actually run commands and cat/l
 
 - No server, no daemon, no database
 - Everything lives in plain files under `.git/`
-- Every "advanced" command — merge, rebase, reflog — is just reading or writing those files
-- Today we're going to open the trench coat
+- Every "advanced" command, merge, rebase, reflog, is just reading or writing those files
 
 <!--
 This slide is the thesis of the talk. Everything after this is demystifying: showing that the scary-sounding commands later on (rebase, force-push, reflog) are just simple, inspectable file operations once you've seen what's actually inside .git.
 
-If people remember one thing from this talk, I want it to be this one. Say it, then move on — don't over-explain yet, we're about to prove it with cat-file.
+If people remember one thing from this talk, I want it to be this one.
 -->
 
 ---
 
 # How is git different?
 
-- Centralized VCS (SVN, CVS, Perforce): one server holds the history — your checkout is just a copy of one revision
+- Centralized VCS (SVN, CVS, Perforce): one server holds the history, your checkout is just a copy of one revision
 - Git is **distributed**: every clone has the *entire* history — commit, branch, and browse history offline
 - Old VCS mostly track *diffs* per file; git snapshots the *whole tree* on every commit
   - Snapshots are cheap: unchanged files are just re-referenced by hash, not recopied
 - There's no special "the server's copy" — your local repo and `origin` are peers, one is just agreed to be canonical
 
 <!--
-Keep this one light - it's context-setting, not a deep dive. The "snapshot not diff" claim is the important one to plant here, because the next few slides (blobs, trees, commits) are literally going to prove it by showing you the snapshot structure on disk.
 
-Worth a quick show of hands: who has used SVN/Perforce/CVS before? Calibrates how much to labour this point.
+Git has established itself as the most popular version control system. In the not so distant past, we used to have discussions around which VCS to use.
+
+Git at it's core takes something very complicated and makes it unbelievely simple. It layers concepts on top each other. What I want to show today is the bottom layer of these models.
+
 -->
 
 ---
@@ -492,54 +490,33 @@ The structure is a "directed acyclic graph"
 -->
 
 ---
-
-# Config files
-
-- Repo config: `.git/config` — a plain text file, same as everything else we've been looking at
-- Global config: `~/.gitconfig`
-
-<!--
-Open a terminal here and `cat .git/config` (and `~/.gitconfig` for the global one) - a real config file is far more convincing than a bullet point.
-
-Deliberately not covering how to set values here (`git config ...`) - that's a "how to use git" tip, not part of the model. The point is just: yes, even config is stored the exact same boring way as everything else - a plain text file, no special config subsystem.
--->
-
+layout: two-cols
 ---
 
-# Merging
+# Fast-Forward
 
-2 Options for merging:
+```mermaid
+gitGraph
+   commit id: "A"
+   commit id: "B"
+   branch " "
+   branch feature
+   checkout feature
+   commit id: "C"
+   commit id: "D"
+   checkout main
+   commit id: "C "
+   commit id: "D "
+```
 
-- Fast-forward merge
-- Merge Commit
+After the fast-forward, `main`'s history includes `C` and `D` too (shown duplicated here) — `feature`'s copies fade since `main` now carries them as well.
 
-<!--
-By default when you merge the first thing git does is figure out if you can do a fast-forward merge.
+- Simply updates a pointer file (moving `main` to point at `feature`'s tip)
+- No new commit is created — nothing is copied or moved, just one ref rewritten
 
-These are the two raw git mechanisms - we'll see near the end how GitHub's Squash/Rebase merge buttons map onto them.
--->
+::right::
 
----
-
-# Fast-forwarding
-
-![Fast-forward merge](http://www.kdgregory.com/images/blog/git-merge-ff.png)
-
-<!--
-A fast-forward merge is when the 2 branches have a shared history and the new commits can be added straight to the branch.
-
-Nothing is actually moved or copied, the branch is just changed to point at the new HEAD commit.
-
-You can force the type of merge using `--no-ff` when merging or globally using `git config --global merge.ff false`.
-
-This is sometimes desirable if you want to keep a strict history of when things were branched and merged.
-
-This is also exactly what GitHub's "Rebase and merge" button produces on the base branch once the replay is done - the rebase creates the new commits, then landing them on main is a fast-forward.
--->
-
----
-
-# Merge commits
+# Merge Commit
 
 ```mermaid
 gitGraph
@@ -554,30 +531,47 @@ gitGraph
    merge feature id: "Merge commit"
 ```
 
-- A commit with 2 (or more) parents
-- Created whenever a fast-forward isn't possible
+`main` moved on its own (commit `E`) — a fast-forward is no longer possible.
+
+- Creates a brand-new commit object with **two parent pointers**
+- Git picks a merge strategy automatically to build it (`ort` by default since Git 2.33)
 
 <!--
-If a branch cannot be fast-forwarded then a Merge commit will be created.
+By default when you merge, the first thing git does is check whether a fast-forward is possible - only falling back to a real merge commit if the branch has diverged.
 
-Git picks a merge strategy automatically to build it - "ort" by default since Git 2.33 (2021), replacing the old "recursive" strategy. Not worth a deep dive for this audience since our GitHub merge settings don't produce raw merge commits anyway - just worth knowing the name if you ever see it mentioned.
+Fast-forward diagram note: `C` and `D` are drawn twice (once on `feature` in the faded colour, once on `main` in the normal colour) purely as a teaching device - there's really only one `C` and one `D`, git isn't duplicating any objects. The point being illustrated is that after the fast-forward, walking `main`'s history also passes through `C` and `D` - they're reachable from both refs now.
 
-See https://git-scm.com/docs/merge-strategies if anyone wants the full list of strategies (Resolve/Recursive/Octopus/Ours/Subtree) after the talk.
+Fast-forward: nothing is actually moved or copied, the branch pointer is just changed to point at the new tip commit. You can force a real merge commit even when a fast-forward is possible with `--no-ff` (or globally: `git config --global merge.ff false`) - useful if you want a strict record of when things were branched and merged. This is also exactly what GitHub's "Rebase and merge" button produces on the base branch once the replay is done - the rebase creates new commits, then landing them on main is a fast-forward.
+
+Merge commit: created whenever a fast-forward isn't possible. ort ("Ostensibly Recursive's Twin") replaced the old "recursive" strategy as the default in Git 2.33 (2021) - not worth a deep dive for this audience since our GitHub merge settings don't produce raw merge commits anyway, just worth knowing the name if you ever see it mentioned. Full list of strategies (Resolve/Recursive/Octopus/Ours/Subtree) at https://git-scm.com/docs/merge-strategies if anyone wants it after the talk.
+
+These are the two raw git mechanisms - we'll see near the end how GitHub's Squash merge button (what this repo actually uses) maps onto them.
 -->
 
 ---
 
-# Rebasing
+# Anatomy of a merge commit
 
-- Controversial
-- Rewriting history
+```
+tree 4b89012ac3d4e5f678901234567890abcdef1234
+parent 1a2b3c4d5e6f7890123456789abcdef01234567
+parent 5e6f7a8b9c0d1e2f345678901234567890abcdef
+author Conor Restall <conor@restall.io> 1690000100 +0100
+committer Conor Restall <conor@restall.io> 1690000100 +0100
+
+Merge branch 'feature' into main
+```
+
+<small>(the output of `git cat-file -p <merge-commit-hash>` - hashes shortened for the slide)</small>
+
+- Same shape as any other commit object - just **two `parent` lines** instead of one
+- The first parent is whichever branch you ran `git merge` from; the second is the branch you merged in
+- Git even writes the commit message for you, summarising what got merged
 
 <!--
-Some people swear by always rebasing, others swear by never rebasing, even to the point of forcing merge commits when they could fast forward. Personally I dislike rebasing on shared branches.
+Worth pointing back at the plain Commits slide from earlier - this is genuinely the exact same object format, one extra line. Nothing else about how git stores it is special.
 
-Clean history vs actual history
-
-Rebasing is about replaying changes from a different base.
+Parent order matters for some tooling (e.g. `git log --first-parent` walks only first parents, which on a repo that merges feature branches gives you one line per feature rather than every individual commit inside it).
 -->
 
 ---
@@ -611,27 +605,79 @@ gitGraph
 gitGraph
    commit id: "A"
    commit id: "B"
-   commit id: "E"
+   branch " "
+   branch "  "
    branch feature
    checkout feature
+   commit id: "C"
+   commit id: "D"
+   checkout main
+   commit id: "E"
    commit id: "C'"
    commit id: "D'"
 ```
 
-Same starting point as the merge example — replayed onto `E` instead of merged back.
+Same starting point as the merge example — replayed onto `E`, landing straight on `main`. The original `C`/`D` are still on `feature` (faint, since nothing on `main` points at them any more) — **not deleted**, just orphaned from this branch's history.
 
-- Replays your commits onto the tip of the target branch
+- Replays your commits onto the tip of the target branch — **"copy-pasting patches onto a new foundation"**
 - **Rewrites history** — `C` and `D` become new commits (`C'`, `D'`) with new hashes
-- Result: a straight line, but the originals are gone from this branch
+- The originals aren't gone — they're just unreachable from `main`, which is why they're drawn faint here
 
 <!--
 This is the crux of the comparison. Same starting point, same intent (bring feature up to date with main / integrate it), completely different result on disk.
 
 Merge: nothing about A, B, C, D, E changes. A brand new commit is added that has two parents. The graph tells the true story of what happened and when.
 
-Rebase: C and D are literally new objects. Same diff, same message, same author - but a different parent, so a different hash (remember: change anything, hash changes). The old C and D still exist in .git/objects until garbage collected, they're just not reachable from this branch's ref any more.
+Rebase: C and D are literally new objects (C', D'). Same diff, same message, same author - but a different parent, so a different hash (remember: change anything, hash changes). The old C and D still exist in .git/objects until garbage collected - they're drawn faint here because nothing on main points at them any more, not because they've been deleted. This is the same "faint = still there, just unreachable" convention as the fast-forward diagram earlier.
+
+Some people swear by always rebasing, others swear by never rebasing, even to the point of forcing merge commits when they could fast forward. Personally I dislike rebasing on shared branches.
+
+"Replaying" is the operative word: git takes the diff each commit introduced and re-applies it on top of the new base, one at a time. The "copy-pasting patches onto a new foundation" framing is worth lingering on - it's not moving the original commits at all, it's authoring new ones that happen to produce the same end result.
 
 Ask: which one would you want on a solo branch you're about to open a PR from? Which one would you want on main, that three other people already have checked out?
+-->
+
+---
+
+# Conflicts: rebase vs merge
+
+- **Merge**: all incoming changes are combined at once — you resolve each conflicting hunk a single time
+- **Rebase**: your commits are replayed one at a time — the same conflicting line can come up again on the next commit
+
+<!--
+This is a genuinely useful practical difference and a common surprise: someone hits "the same" conflict 3 times during a rebase of 3 commits that all touch the same function, and assumes something is broken. Nothing is broken - each commit is being replayed as an independent patch, so if 3 patches touch the same line, that line is a conflict 3 times.
+
+Mid-rebase toolkit, if it's useful to mention: `git rebase --continue` after fixing a conflict, `git rebase --skip` to drop a commit that no longer applies, `git rebase --abort` to bail out completely and go back to where you started - the important one to remember when panicking, it puts you back exactly where you started, as if the rebase never happened.
+-->
+
+---
+
+# Cherry-Picking
+
+```mermaid
+gitGraph
+   commit id: "A"
+   commit id: "B"
+   branch feature
+   checkout feature
+   commit id: "C"
+   commit id: "D"
+   checkout main
+   commit id: "C'"
+```
+
+Only `C` gets replayed onto `main` as `C'` — `D` is left behind on `feature`.
+
+- Calculates the diff introduced by a single commit relative to its parent
+- Applies that patch as a **brand-new commit** on top of `HEAD`
+- `git cherry-pick <commit-hash>`
+
+<!--
+This is rebase's mechanism applied to exactly one commit instead of a whole branch's worth. Same underlying operation (take a diff, replay it on a new base) - just scoped down.
+
+Good use case to mention: a hotfix commit made on a feature branch that you want on main immediately, without pulling in the rest of the feature branch's unfinished work.
+
+Same rules as rebase apply: C' is a new object with a new hash. If you later merge or rebase the whole feature branch too, git can usually tell the content already landed (patch-id matching) and will skip replaying it again - but it's not guaranteed, so cherry-picking followed by a full merge can occasionally produce a duplicate-looking commit.
 -->
 
 ---
@@ -654,17 +700,21 @@ Worth being explicit that fetch is "safe" (it only downloads and updates bookkee
 
 # Rebasing a branch you've already pushed
 
+Same rebase as a couple of slides ago — `C`/`D` replayed onto `E`, producing `C'`/`D'`. Now you try to `git push` that.
+
 ```
-before   origin/feature:  A---B---C
-after    feature (local): A---B---E---F   (rebased onto main)
+before   origin/feature:  A---B---C---D
+after    feature (local): A---B---E---C'---D'
 ```
 
-- `E` and `F` don't share history with the `C` that's already on the remote
+- `C'` and `D'` don't share history with the `C`/`D` that are already on the remote
 - A normal `git push` is a **fast-forward only** operation by default
-- The remote can't fast-forward to your new tip without "forgetting" `C` — so it rejects the push
-- The only way past this is `git push --force` (or the safer `--force-with-lease`) — telling the remote to just overwrite `C` with your new history
+- The remote can't fast-forward to your new tip without "forgetting" `C`/`D` — so it rejects the push
+- The fix is `git push --force` (or the safer `--force-with-lease`) — telling the remote to just overwrite its history with yours
 
 <!--
+This slide is specifically about what happens when you try to *push* a branch you've rebased locally, after it was already pushed once before - it's the direct sequel to the rebase diagram, not a new topic. The force-push is the *consequence* you have to deal with, not the thing being taught here.
+
 This is the moment people panic: `git push` says "Updates were rejected because the tip of your current branch is behind its remote counterpart". From the developer's perspective they've done nothing wrong - they rebased to get a cleaner history - but git literally cannot reconcile this as a fast-forward, because it isn't one.
 
 This is the natural, expected consequence of rewriting history that's already shared, not a bug.
@@ -680,7 +730,7 @@ Rule of thumb worth saying out loud: force-push branches that are yours alone (y
 
 If a teammate already pulled the old commits before your force-push:
 
-- Their local branch still has the old `C`; the remote now has `E`, `F` with no shared history for `C`
+- Their local branch still has the old `C`/`D`; the remote now has `C'`/`D'` with no shared history for `C`/`D`
 - Their next `git pull` will likely report **diverged branches**, or produce a confusing merge of two unrelated-looking histories
 - Recovering means discarding their old copy of that branch and taking yours instead
 
@@ -690,19 +740,6 @@ This is the actual cost of rewriting shared history - it's not abstract, it's "B
 To recover: `git fetch && git reset --hard origin/<branch>` (only safe if they have no unpushed local work!), or replay any local work they do have with `git pull --rebase`.
 
 In practice: if you must rebase something shared, tell people first. "I'm about to force-push feature-x, re-pull after" costs one Slack message.
--->
-
----
-
-# Conflicts: rebase vs merge
-
-- **Merge**: all incoming changes are combined at once — you resolve each conflicting hunk a single time
-- **Rebase**: your commits are replayed one at a time — the same conflicting line can come up again on the next commit
-
-<!--
-This is a genuinely useful practical difference and a common surprise: someone hits "the same" conflict 3 times during a rebase of 3 commits that all touch the same function, and assumes something is broken. Nothing is broken - each commit is being replayed as an independent patch, so if 3 patches touch the same line, that line is a conflict 3 times.
-
-Mid-rebase toolkit, if it's useful to mention: `git rebase --continue` after fixing a conflict, `git rebase --skip` to drop a commit that no longer applies, `git rebase --abort` to bail out completely and go back to where you started - the important one to remember when panicking, it puts you back exactly where you started, as if the rebase never happened.
 -->
 
 ---
@@ -724,18 +761,36 @@ This is worth saying explicitly: the goal of this whole section wasn't "be scare
 
 ---
 
-# How this team merges: Squash & Rebase
+# How this team merges: Squash and merge
 
-This repo only allows **Squash and merge** or **Rebase and merge** on PRs — no merge commits
+This repo uses **Squash and merge** for every PR — no merge commits land on `main`
 
-- **Squash and merge**: every commit in your PR becomes **one new commit** on `main`
-- **Rebase and merge**: each of your PR's commits is replayed individually onto `main` — exactly the `git rebase` we covered earlier, then fast-forwarded
-- Either way: what lands on `main` is **new commit objects**, not the ones on your branch
+```mermaid
+gitGraph
+   commit id: "A"
+   commit id: "B"
+   branch " "
+   branch feature
+   checkout feature
+   commit id: "C"
+   commit id: "D"
+   commit id: "E"
+   checkout main
+   commit id: "Squash commit"
+```
+
+- `C`, `D`, `E` are squashed into **one new commit** on `main`
+- Not deleted — still on `feature` (faint), just not part of `main`'s line
+- Unlike a merge commit, a squash commit has **only one parent** — no record it came from a branch
 
 <!--
-This is why GitHub prompts you to delete your branch after merging, and why `git branch -d feature` sometimes refuses (it can't detect the branch is "merged" because the hashes genuinely don't match, especially after a squash) - you may need `git branch -D` instead, or just delete it via GitHub and re-pull main.
+Deliberately no `merge` line drawn back from feature to main here - a squash merge doesn't create a merge commit, so drawing a connecting arc would visually imply something that didn't happen. The squash commit just appears on main's line like any other ordinary commit.
 
-Locally, once your PR has landed: `git checkout main && git pull && git branch -d feature-branch`. If git complains it's not fully merged, that's expected, not a bug - the commits really are different objects now, same principle as merge vs rebase covered earlier.
+Worth contrasting explicitly with the merge commit slide from earlier: a merge commit has 2 parents and preserves every individual commit from the branch - nothing is thrown away or combined. A squash commit has 1 parent and throws away the individual commit boundaries entirely, trading fine-grained history for a clean "one line per PR" log on main. The original commits aren't gone (they're still on the PR, and on the branch if it still exists) - they're just not part of main's history the way a real merge would have kept them.
+
+This is why GitHub prompts you to delete your branch after merging, and why `git branch -d feature` sometimes refuses (it can't detect the branch is "merged" because the hashes genuinely don't match after a squash) - you may need `git branch -D` instead, or just delete it via GitHub and re-pull main.
+
+Locally, once your PR has landed: `git checkout main && git pull && git branch -d feature-branch`. If git complains it's not fully merged, that's expected, not a bug - the commits really are different objects now.
 
 If you keep working on that branch after it's merged (or someone else pulled it before the merge), you're in exactly the "rebasing a branch you've already pushed" situation covered earlier in the talk - it happens on every single PR here, not just when you personally run `git rebase`.
 -->

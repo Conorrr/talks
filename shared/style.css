@@ -146,7 +146,8 @@
   color: var(--text-secondary);
 }
 
-.slidev-layout :not(pre) > code {
+.slidev-layout :not(pre) > code,
+.slidev-note :not(pre) > code {
   background: var(--surface-sunken);
   color: var(--text-primary);
   border: 1px solid var(--border-default);

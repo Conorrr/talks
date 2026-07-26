@@ -24,13 +24,18 @@ export default () => ({
     // gitGraph: neutral ink for the trunk, the one accent color reserved
     // for the branch actually being discussed — matches "one confident
     // accent color, used sparingly" rather than tinting every branch.
+    //
+    // Slots are ordered so a diagram can reach "paler" (git2, 1 dummy
+    // `branch` before the real one) or "very faint" (git3, 2 dummies)
+    // without needing many throwaway branches - see the fast-forward and
+    // rebasing diagrams for the dummy-branch trick this relies on.
     git0: '#3d3c38', // ink-700
     git1: '#d4632c', // accent-600
-    git2: '#a3a19a', // ink-300
-    git3: '#eeae85', // accent-300
+    git2: '#a3a19a', // ink-300 — "paler"
+    git3: '#c9c7be', // ink-150 — "very faint"
     git4: '#6b6a64', // ink-500
     git5: '#b34f1f', // accent-700
-    git6: '#c9c7be', // ink-150
+    git6: '#eeae85', // accent-300
     git7: '#fbe4d5', // accent-100
 
     gitBranchLabel0: '#f5f4f0',
