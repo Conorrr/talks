@@ -13,29 +13,34 @@ info: |
 
 # Git <span class="accent">Demystified</span>
 
-### Or: how the pieces actually fit together
+### Stop Guessing with the Tool You Use Every Day
 
 <Byline />
 
 <!--
-Ask questions as I go.  If I start going to fast please drop questions in chat, or raise your hand.
+Ask questions as I go.  If I start going to fast please drop questions in chat and I'll address them half way through.
 
 I am recording
 
-Teaching principles, not tools
-For demos I will solely use the command line. If that's not what you're used to don't fret it's not important to remember what I am typing, it's important to remember the concepts I'm explaining.
-
-I will be tabbing into a terminal a few times to actually run commands and cat/ls files inside .git. Not because I expect anyone to go poking around in there day to day (you shouldn't need to, and probably never will), but because seeing it for real is far more convincing than a diagram claiming "it's just a file, trust me".
+Teaching principles, not tools. 
 
 This isn't a "how to use git" talk, and it isn't a tour of any particular tool's UI (IntelliJ, GitHub Desktop, whatever you use day to day). None of that is the point today. I'm not going to be dictating git commands to memorise or clicking through anyone's git GUI.
 
-The point is the model underneath all of those tools. Every button in every git GUI, every command you type, is ultimately just reading or writing the same handful of file types in .git/, once that clicks, the tools stop feeling like separate things to memorise and start feeling like different windows onto the same simple structure.
+For demos I will solely use the command line. If that's not what you're used to don't fret it's not important to remember what I am typing, it's important to remember the concepts I'm explaining.
+
+I will be tabbing into a terminal a few times to actually run commands and cat/ls files inside .git. Not because I expect anyone to go poking around in there day to day (you shouldn't need to, and probably never will), but because seeing it for real is far more convincing than a diagram claiming "it's just a file, trust me".
 
 -->
 
 ---
 
 <img src="https://imgs.xkcd.com/comics/git.png" style="max-height: 60vh; margin: 0 auto;" />
+
+<!--
+
+Git as a list of magical incantations. We memorize commit, push, pull, and checkout like recipes. Most of the time it works flawlessly, but the second something unexpected happens or we have to do something unexpected, the recipe breaks and we have no idea how to debug it.
+
+-->
 
 ---
 
@@ -62,54 +67,25 @@ The point is the model underneath all of those tools. Every button in every git 
 "A bunch of zipped-up text files, wearing a trench coat, pretending to be complicated."
 </div>
 
-- No server, no daemon, no database
-- Everything lives in plain files under `.git/`
-- Every "advanced" command, merge, rebase, reflog, is just reading or writing those files
-
-<!--
-This slide is the thesis of the talk. Everything after this is demystifying: showing that the scary-sounding commands later on (rebase, force-push, reflog) are just simple, inspectable file operations once you've seen what's actually inside .git.
-
-If people remember one thing from this talk, I want it to be this one.
--->
-
----
-
-# How is git different?
-
-- Centralized VCS (SVN, CVS, Perforce): one server holds the history, your checkout is just a copy of one revision
-- Git is **distributed**: every clone has the *entire* history — commit, branch, and browse history offline
-- Old VCS mostly track *diffs* per file; git snapshots the *whole tree* on every commit
-  - Snapshots are cheap: unchanged files are just re-referenced by hash, not recopied
-- There's no special "the server's copy" — your local repo and `origin` are peers, one is just agreed to be canonical
-
-<!--
-
-Git has established itself as the most popular version control system. In the not so distant past, we used to have discussions around which VCS to use.
-
-Git at it's core takes something very complicated and makes it unbelievely simple. It layers concepts on top each other. What I want to show today is the bottom layer of these models.
-
--->
-
----
-
-# Fundamentals
-
-Three things worth nailing down before we go any further:
-
-- **DVCS** — you have the *entire* repository locally, not just a working copy. Remotes exist to share it, not to hold "the real" history
+- **Distributed** — every clone has the *entire* history, not just a checkout of one revision like centralized VCS (SVN, CVS, Perforce). There's no special "the server's copy" — your local repo and `origin` are peers
+- **Snapshots, not diffs** — git records the *whole tree* on every commit rather than per-file changes. Cheap, because unchanged files are just re-referenced by hash, not recopied
 - **Hashes** — SHA-1, computed from content. Change anything, the hash changes. The same content hashed twice is the same object, stored once
-- **The `.git` directory** — the whole repository lives in here, as plain files — not a database, not a service, just files on disk
+- **Just plain files** — no server, no daemon, no database. Everything lives under `.git/`, as ordinary files on disk
 
 <!--
-These 3 ideas are the foundation everything else builds on - worth actually pausing on each rather than rushing past them, since the rest of the talk just keeps applying them over and over.
+This slide is the thesis of the talk, everything after this is demystifying. Git has become the default version control system almost everywhere; it wasn't always this way, there used to be real debates about which VCS to use. At its core, git takes something complicated and makes it unbelievably simple by layering concepts on top of each other, what I want to show today is the bottom layer of those models.
 
-DVCS: this is the same point "How is git different" made a couple of slides ago, just landing it more concretely - being distributed means git keeps a full copy of the repository locally, separate from your working copy. Remotes are purely there to help you share it.
+Distributed: being distributed means git keeps a full copy of the repository locally, separate from your working copy. Remotes are purely there to help you share it.
 
-Hashes: git uses SHA-1, generally shown hex-encoded. `git hash-object somefile` will compute one without even touching the repo. Short hashes (`git log --oneline`) are just a truncated prefix - git gives you enough characters to stay unique, `git log` on its own shows the full thing.
+Snapshots not diffs: this is the concrete payoff of being distributed, a full history locally only works well if each commit is cheap to store, which is why git snapshots the whole tree rather than diffing.
 
-The lightbulb moment to aim for here: if you change anything, the hash changes - you're never really "modifying" an object, you're creating a new one. And if two things hash the same, they're stored once. Almost everything demystifying about the rest of this talk falls out of taking that one idea seriously.
+Hashes: git uses SHA-1, generally shown hex-encoded. `git hash-object somefile` will compute one without even touching the repo. Short hashes (`git log --oneline`) are just a truncated prefix, git gives you enough characters to stay unique, `git log` on its own shows the full thing.
 
-.git directory: the entire repo, no exceptions, at the root of every git project. I'll delve into it a fair bit over the next few slides - just don't go manually editing its contents on a real repo unless you really know what you're doing, git is not forgiving about a hand-edited object store.
+The lightbulb moment to aim for here: if you change anything, the hash changes, you're never really "modifying" an object, you're creating a new one. And if two things hash the same, they're stored once. Almost everything demystifying about the rest of this talk falls out of taking that one idea seriously.
+
+Just plain files: the entire repo lives in `.git/`, no exceptions, at the root of every git project. I'll delve into it a fair bit over the next few slides, just don't go manually editing its contents on a real repo unless you really know what you're doing, git is not forgiving about a hand-edited object store.
+
+If people remember one thing from this talk, I want it to be this one: it's just files, and every "advanced" command, merge, rebase, reflog, is just reading or writing them.
 -->
 
 ---
@@ -408,35 +384,9 @@ Ties back to Branches and Tags a couple of slides back: `ls .git/refs/heads/main
 
 ---
 
-# Detached HEAD, demystified
-
-We already know: `HEAD` normally points at a branch, which points at a commit.
-
-```mermaid
-flowchart RL
-    HEAD --> C3["C"]
-    C3 --> C2["B"]
-    C2 --> C1["A"]
-```
-
-- Checking out a specific commit (`git checkout <sha>`, or a tag) points `HEAD` **directly** at a commit, skipping the branch
-- New commits still work exactly the same way — write the commit, move the pointer
-- The only difference: nothing else points at that new commit, so it's easy to "lose" once you check out something else
-- Not broken, not special — just one less indirection than usual
-
-<!--
-This is the thing people panic about most needlessly. `git checkout <sha>` (or `git log`, `git bisect`, checking out a tag, etc.) puts you here constantly, and the scary yellow warning message makes it sound like you've done something wrong.
-
-You haven't. It's the exact same mechanism as always, minus the branch pointer in the middle. Committing here still works completely normally, it's just that once you check out something else, that commit has nothing pointing at it any more - and per the reflog slide later, "nothing points at it" doesn't mean "gone", just "needs a moment to find it again" (git reflog, or just checking out the hash again if you still have it).
-
-Reusing the same diagram style as the previous slide deliberately - literally the same picture as "how commits chain together", just with HEAD one hop closer to the commit.
--->
-
----
-
 # What does this all mean for git
 
-- Every time you make a change to a file, a new blob is stored (packfiles + delta compression make this cheap for typical text changes — very large binary files are still a real weak spot)
+- Every time you make a change to a file, a new blob is stored
 - Each commit can directly access its exact state without having to look through all of history
 - If you commit the same file it will only be stored once
 - There is nothing special about moving or renaming files
@@ -452,36 +402,9 @@ Questions?
 
 ---
 
-# Why doesn't my repo balloon in size?
+# Questions?
 
-- Every loose object is already zlib-compressed on disk — cheap, but not the main trick
-- Periodically (`git gc`, or automatically), git repacks objects into a single **packfile**
-- Inside a packfile, similar objects are stored as **deltas** against each other — not full copies
-  - Two versions of the same file are usually mostly identical, so the delta is tiny
-- Still stored once per *distinct* piece of content — big binary files (videos, PSDs) remain a real weak spot for git
-
-<!--
-This directly answers the skeptical question people are usually holding in their head by now: "if every commit is a full snapshot, doesn't my repo get huge fast?"
-
-Loose objects (individually zlib-deflated, one file per object under .git/objects/xx/) are what we've been looking at so far - that's the simple, honest representation, and it IS what's on disk right after a commit. Left alone forever it would be wasteful for long-lived repos though.
-
-`git gc` (which also runs automatically sometimes, e.g. after enough loose objects pile up) repacks the object store into one or a few .pack files, using delta compression between similar objects - similar to how `diff` finds similarity, not because git "knows" they're related versions of the same file (it doesn't track that explicitly, remember - no special renames/versions concept). It's just very good at spotting byte-level similarity between objects and only storing the difference.
-
-This is also why cloning a big old repo downloads packfiles, not thousands of loose objects - much smaller transfer.
-
-Demo, if there's a real repo handy: `git count-objects -v` shows loose vs packed object counts, and `du -sh .git` before/after a `git gc` on a suitably large repo can be a nice visual if you have one lying around.
--->
-
----
-
-# Summary so far
-
-- Refs point at commits
-- Commits point at other commits and a tree
-- Trees point at blobs
-- Blobs are just compressed file contents
-
-QUESTIONS?
+...
 
 <!--
 Important to understand these are all intertwined, but not cyclical.
@@ -499,7 +422,6 @@ layout: two-cols
 gitGraph
    commit id: "A"
    commit id: "B"
-   branch " "
    branch feature
    checkout feature
    commit id: "C"
@@ -605,8 +527,6 @@ gitGraph
 gitGraph
    commit id: "A"
    commit id: "B"
-   branch " "
-   branch "  "
    branch feature
    checkout feature
    commit id: "C"
@@ -617,11 +537,11 @@ gitGraph
    commit id: "D'"
 ```
 
-Same starting point as the merge example — replayed onto `E`, landing straight on `main`. The original `C`/`D` are still on `feature` (faint, since nothing on `main` points at them any more) — **not deleted**, just orphaned from this branch's history.
+Same starting point as the merge example. The original `C`/`D` are still on `feature`, just orphaned from this branch's history.
 
-- Replays your commits onto the tip of the target branch — **"copy-pasting patches onto a new foundation"**
+- Replays your commits onto the tip of the target branch
 - **Rewrites history** — `C` and `D` become new commits (`C'`, `D'`) with new hashes
-- The originals aren't gone — they're just unreachable from `main`, which is why they're drawn faint here
+- The originals aren't gone
 
 <!--
 This is the crux of the comparison. Same starting point, same intent (bring feature up to date with main / integrate it), completely different result on disk.
@@ -652,111 +572,18 @@ Mid-rebase toolkit, if it's useful to mention: `git rebase --continue` after fix
 
 ---
 
-# Cherry-Picking
-
-```mermaid
-gitGraph
-   commit id: "A"
-   commit id: "B"
-   branch feature
-   checkout feature
-   commit id: "C"
-   commit id: "D"
-   checkout main
-   commit id: "C'"
-```
-
-Only `C` gets replayed onto `main` as `C'` — `D` is left behind on `feature`.
-
-- Calculates the diff introduced by a single commit relative to its parent
-- Applies that patch as a **brand-new commit** on top of `HEAD`
-- `git cherry-pick <commit-hash>`
-
-<!--
-This is rebase's mechanism applied to exactly one commit instead of a whole branch's worth. Same underlying operation (take a diff, replay it on a new base) - just scoped down.
-
-Good use case to mention: a hotfix commit made on a feature branch that you want on main immediately, without pulling in the rest of the feature branch's unfinished work.
-
-Same rules as rebase apply: C' is a new object with a new hash. If you later merge or rebase the whole feature branch too, git can usually tell the content already landed (patch-id matching) and will skip replaying it again - but it's not guaranteed, so cherry-picking followed by a full merge can occasionally produce a duplicate-looking commit.
--->
-
----
-
 # Remotes: a quick primer
 
 - A remote is just another git repo, at a URL, that your repo knows about (usually `origin`)
 - `git fetch` downloads new commits and updates your **remote-tracking branches** (`origin/main`) — your own branches don't move
 - `git pull` = `git fetch` + merge your branch with the remote-tracking branch
-  - `git pull --rebase` replays your local commits on top instead of merging
+- `git pull --rebase` replays your local commits on top instead of merging
 - `git push` uploads your commits and asks the remote to move its branch pointer
 
 <!--
 Remote-tracking branches are refs too, stored under `.git/refs/remotes/` - same trench-coat principle as everything else.
 
 Worth being explicit that fetch is "safe" (it only downloads and updates bookkeeping refs, never touches your working branch or working directory) and pull is fetch + one more step you don't always see happening.
--->
-
----
-
-# Rebasing a branch you've already pushed
-
-Same rebase as a couple of slides ago — `C`/`D` replayed onto `E`, producing `C'`/`D'`. Now you try to `git push` that.
-
-```
-before   origin/feature:  A---B---C---D
-after    feature (local): A---B---E---C'---D'
-```
-
-- `C'` and `D'` don't share history with the `C`/`D` that are already on the remote
-- A normal `git push` is a **fast-forward only** operation by default
-- The remote can't fast-forward to your new tip without "forgetting" `C`/`D` — so it rejects the push
-- The fix is `git push --force` (or the safer `--force-with-lease`) — telling the remote to just overwrite its history with yours
-
-<!--
-This slide is specifically about what happens when you try to *push* a branch you've rebased locally, after it was already pushed once before - it's the direct sequel to the rebase diagram, not a new topic. The force-push is the *consequence* you have to deal with, not the thing being taught here.
-
-This is the moment people panic: `git push` says "Updates were rejected because the tip of your current branch is behind its remote counterpart". From the developer's perspective they've done nothing wrong - they rebased to get a cleaner history - but git literally cannot reconcile this as a fast-forward, because it isn't one.
-
-This is the natural, expected consequence of rewriting history that's already shared, not a bug.
-
-On force-push: `--force` says "make the remote look exactly like my local branch, I don't care what's there" - anything on the remote you don't have locally gets discarded. `--force-with-lease` is a compare-and-swap instead of a blind overwrite: it refuses if the remote has moved since your last fetch, i.e. it won't clobber commits you haven't even seen yet. Worth demoing the actual rejection message if there's a spare repo set up for it - `--force-with-lease` genuinely refuses when someone else has pushed in between your fetch and your push.
-
-Rule of thumb worth saying out loud: force-push branches that are yours alone (your own PR branch) - never shared branches like main.
--->
-
----
-
-# What happens to your collaborators?
-
-If a teammate already pulled the old commits before your force-push:
-
-- Their local branch still has the old `C`/`D`; the remote now has `C'`/`D'` with no shared history for `C`/`D`
-- Their next `git pull` will likely report **diverged branches**, or produce a confusing merge of two unrelated-looking histories
-- Recovering means discarding their old copy of that branch and taking yours instead
-
-<!--
-This is the actual cost of rewriting shared history - it's not abstract, it's "Bob spends 20 minutes confused and then loses ability to just `git pull` cleanly". The fix is fine, but it requires Bob to know it's coming.
-
-To recover: `git fetch && git reset --hard origin/<branch>` (only safe if they have no unpushed local work!), or replay any local work they do have with `git pull --rebase`.
-
-In practice: if you must rebase something shared, tell people first. "I'm about to force-push feature-x, re-pull after" costs one Slack message.
--->
-
----
-
-# Safety net: git reflog
-
-- Git keeps a log of everywhere `HEAD` has pointed — every commit, rebase, and reset
-- Commits are rarely gone immediately, even after `reset --hard` or a botched rebase
-- `git reflog` to find the commit you lost
-- `git reset --hard <sha>` (or `cherry-pick` / `checkout`) to get it back
-
-The trench coat comes off again: it's still just a log file.
-
-<!--
-Good closing note for the whole rebase/force-push arc - all of this is recoverable, because none of it actually deletes objects immediately. Objects only get garbage collected once nothing references them and enough time has passed (`git gc`, default 90 days for reflog entries, 30 for unreachable objects).
-
-This is worth saying explicitly: the goal of this whole section wasn't "be scared of rebase", it was "understand what it actually does, so you're not scared of it".
 -->
 
 ---
@@ -769,7 +596,6 @@ This repo uses **Squash and merge** for every PR — no merge commits land on `m
 gitGraph
    commit id: "A"
    commit id: "B"
-   branch " "
    branch feature
    checkout feature
    commit id: "C"
@@ -780,7 +606,7 @@ gitGraph
 ```
 
 - `C`, `D`, `E` are squashed into **one new commit** on `main`
-- Not deleted — still on `feature` (faint), just not part of `main`'s line
+- Not deleted — still on `feature`, just not part of `main`'s line
 - Unlike a merge commit, a squash commit has **only one parent** — no record it came from a branch
 
 <!--
@@ -801,10 +627,7 @@ If you keep working on that branch after it's merged (or someone else pulled it 
 
 - [git-scm.com/docs](https://git-scm.com/docs/) - Reference Docs
 - [git-scm.com/book](https://git-scm.com/book/en/v2/) - Book called "Pro Git" by Scott Chacon and Ben Straub
-- [Pro Git: Rebasing](https://git-scm.com/book/en/v2/Git-Branching-Rebasing) - the chapter this half of the talk is based on
-- [Pro Git: Reset Demystified](https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified) - exactly what it sounds like
 - [gitimmersion.com](http://gitimmersion.com) - really good resource for learning git
-- Google
 
 <!--
 The book is really good and is available for free under Creative Commons License
