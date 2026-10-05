@@ -53,5 +53,17 @@ export default () => ({
     tagLabelColor: '#7a3512', // accent-900
     tagLabelBackground: '#fbe4d5', // accent-100
     tagLabelBorder: '#eeae85', // accent-300
+
+    // sequenceDiagram: same neutral surfaces as flowchart nodes, with notes
+    // in the soft accent rather than Mermaid's default yellow.
+    actorBkg: '#ece9e2', // paper-100
+    actorBorder: '#a3a19a', // ink-300
+    actorTextColor: '#1a1a18', // ink-900
+    actorLineColor: '#a3a19a', // ink-300
+    signalColor: '#3d3c38', // ink-700
+    signalTextColor: '#1a1a18', // ink-900
+    noteBkgColor: '#fbe4d5', // accent-100
+    noteBorderColor: '#eeae85', // accent-300
+    noteTextColor: '#1a1a18', // ink-900
   },
 })
